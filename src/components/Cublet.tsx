@@ -33,7 +33,7 @@ export type CubletRef = Ref<
     Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[]>
   >
 
-export const Cublet: React.FC<CubletProps> = ({ position, index }) => {
+export const Cublet: React.FC<CubletProps> = ({ position }) => {
   const cubletRef = useRef<CubletEl>(null)
 
   useLayoutEffect(() => {

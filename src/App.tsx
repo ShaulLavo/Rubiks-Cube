@@ -1,18 +1,17 @@
-import { OrbitControls, Stars, Stats, PivotControls } from '@react-three/drei'
+import { OrbitControls, Stars, Stats } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Cublet } from './components/Cublet'
-import useRefs from 'react-use-refs'
+import { motion } from 'framer-motion-3d'
+import { useMemo, useRef } from 'react'
 import {
+  AxesHelper,
+  BufferGeometry,
+  Group,
   Material,
   Mesh,
   NormalBufferAttributes,
-  BufferGeometry,
-  Group,
-  Vector3,
-  AxesHelper
+  Vector3
 } from 'three'
-import { motion } from 'framer-motion-3d'
+import { Cublet } from './components/Cublet'
 interface CubeProps {
   size: number
 }
@@ -95,7 +94,7 @@ const Cube: React.FC<CubeProps> = ({ size }) => {
 
 function Scene () {
   const { camera, scene } = useThree()
-  useFrame(({ clock }) => {
+  useFrame(() => {
     camera.lookAt(scene.position)
   })
   const axesHelper = new AxesHelper(5) // The number specifies the size of the helper
