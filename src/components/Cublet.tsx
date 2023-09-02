@@ -8,12 +8,13 @@ import {
   Mesh,
   MeshStandardMaterial,
   NormalBufferAttributes,
+  MeshNormalMaterial,
   Vector3
 } from 'three'
-import { CubeColors } from './constants'
+import { CubeColors, DarkModeCubeColors } from './constants'
 import { CubletEl } from '../App'
 
-extend({ Mesh, BoxGeometry, MeshStandardMaterial })
+extend({ Mesh, BoxGeometry, MeshStandardMaterial, MeshNormalMaterial })
 
 interface CubletProps {
   isFaceCublet?: boolean
@@ -45,7 +46,7 @@ export const Cublet: React.FC<CubletProps> = ({ position }) => {
   // if (index < 9) cubletRef?.current?.rotateY(Math.PI / 4)
   return (
     <Box args={[1, 1, 1]} ref={cubletRef} position={position}>
-      {Object.values(CubeColors)
+      {Object.values(DarkModeCubeColors)
         .filter(v => !isNaN(Number(v)))
         .map((color, index) => (
           <meshStandardMaterial
@@ -55,22 +56,14 @@ export const Cublet: React.FC<CubletProps> = ({ position }) => {
             emissive={color}
             emissiveIntensity={0.5}
           />
+          // <meshNormalMaterial
+          //   key={index}
+          //   attach={`material-${index}`}
+          //   // color={color}
+          //   // emissive={color}
+          //   // emissiveIntensity={0.5}
+          // />
         ))}
-    </Box>
-  )
-}
-
-export const SimpleCublet: React.FC<SimpleCubletProps> = ({
-  position,
-  color
-}) => {
-  return (
-    <Box args={[1, 1, 1]} position={position}>
-      <meshStandardMaterial
-        color={color}
-        emissive={color}
-        emissiveIntensity={0.5}
-      />
     </Box>
   )
 }
