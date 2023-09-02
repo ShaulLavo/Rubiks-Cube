@@ -6,13 +6,13 @@ import {
   BufferGeometry,
   Material,
   Mesh,
+  MeshNormalMaterial,
   MeshStandardMaterial,
   NormalBufferAttributes,
-  MeshNormalMaterial,
   Vector3
 } from 'three'
-import { CubeColors, DarkModeCubeColors } from './constants'
-import { CubletEl } from '../App'
+import { NormalMatrix, CubletEl } from '../types'
+import { DarkModeCubeColors } from './constants'
 
 extend({ Mesh, BoxGeometry, MeshStandardMaterial, MeshNormalMaterial })
 
@@ -21,10 +21,8 @@ interface CubletProps {
   position: [number, number, number]
   index: number
   cubletRef?: CubletRef
-}
-interface SimpleCubletProps {
-  color: CubeColors
-  position: [number, number, number]
+  size: number
+  normalPosition: NormalMatrix
 }
 
 export type CubletRef = Ref<
@@ -34,16 +32,43 @@ export type CubletRef = Ref<
     Mesh<BufferGeometry<NormalBufferAttributes>, Material | Material[]>
   >
 
-export const Cublet: React.FC<CubletProps> = ({ position }) => {
+export const Cublet: React.FC<CubletProps> = ({
+  position,
+  index: cubletIndex,
+  size,
+  normalPosition
+}) => {
   const cubletRef = useRef<CubletEl>(null)
-
   useLayoutEffect(() => {
     if (cubletRef.current) {
-      cubletRef.current.translateOnAxis(new Vector3(0, -0.5, -0.5), 1) // translates along the X-axis
+      cubletRef.current.translateOnAxis(new Vector3(-0.525, -0.525, -0.525), 1)
     }
   }, [cubletRef.current])
-
   // if (index < 9) cubletRef?.current?.rotateY(Math.PI / 4)
+  const cubletColor = (cubletIndex: number, faceIndex: number) => {
+    console.log(cubletIndex + faceIndex)
+    console.log(normalPosition)
+    const specificPosition =
+      normalPosition[
+        faceIndex + cubletIndex >= size ? 0 : faceIndex + cubletIndex
+      ]
+    const isOuterLayer =
+      specificPosition[0] === 0 ||
+      specificPosition[0] === size - 1 ||
+      specificPosition[1] === 0 ||
+      specificPosition[1] === size - 1 ||
+      specificPosition[2] === 0 ||
+      specificPosition[2] === size - 1
+
+    console.log(isOuterLayer)
+    // Other conditions...
+    if (isOuterLayer) {
+      return 'blue'
+    } else {
+      return 'red'
+    }
+  }
+
   return (
     <Box args={[1, 1, 1]} ref={cubletRef} position={position}>
       {Object.values(DarkModeCubeColors)
@@ -53,16 +78,10 @@ export const Cublet: React.FC<CubletProps> = ({ position }) => {
             key={index}
             attach={`material-${index}`}
             color={color}
-            emissive={color}
-            emissiveIntensity={0.5}
+            ref={() => {}}
+            // emissive={color}
+            // emissiveIntensity={0.5}
           />
-          // <meshNormalMaterial
-          //   key={index}
-          //   attach={`material-${index}`}
-          //   // color={color}
-          //   // emissive={color}
-          //   // emissiveIntensity={0.5}
-          // />
         ))}
     </Box>
   )
