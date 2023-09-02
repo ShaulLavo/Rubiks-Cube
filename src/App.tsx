@@ -1,195 +1,129 @@
-import { OrbitControls, Stars, Stats } from '@react-three/drei'
+import { OrbitControls, Stars, Stats, PivotControls } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Cublet, SimpleCublet } from './components/Cublet'
-import { FC, Fragment, useMemo } from 'react'
-import { CubeColors } from './components/constants'
-
-function CubePreforment() {
-	const spacing = 1.1
-	const length = 3
-	return (
-		<>
-			{Array.from({ length }, (_, i) =>
-				Array.from({ length }, (_, j) =>
-					Array.from({ length }, (_, k) => (
-						<Cublet
-							key={`${i}-${j}-${k}`}
-							position={[
-								(i - 4) * spacing,
-								(j - 4) * spacing,
-								(k - 4) * spacing
-							]}
-						/>
-					))
-				)
-			)}
-		</>
-	)
-}
+import { useLayoutEffect, useMemo, useRef } from 'react'
+import { Cublet } from './components/Cublet'
+import useRefs from 'react-use-refs'
+import {
+  Material,
+  Mesh,
+  NormalBufferAttributes,
+  BufferGeometry,
+  Group,
+  Vector3,
+  AxesHelper
+} from 'three'
+import { motion } from 'framer-motion-3d'
 interface CubeProps {
-	size: number
+  size: number
+}
+export type CubletEl = Mesh<
+  BufferGeometry<NormalBufferAttributes>,
+  Material | Material[]
+>
+
+type GroupRefs = Group[]
+
+const Cube: React.FC<CubeProps> = ({ size }) => {
+  // const maxIndex =  * size * size - 1
+  const faceRefs = useRef<GroupRefs>([])
+  const cubeRef = useRef<Group | null>(null)
+
+  const cubletMatrix = useMemo(() => {
+    const positions: [number, number, number][] = []
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        for (let k = 0; k < size; k++) {
+          positions.push([i, j, k])
+        }
+      }
+    }
+    return positions
+  }, [size])
+
+  const cubletMatrixWithSpacing = useMemo(() => {
+    const spacing = 1.05
+    return cubletMatrix.map(cube =>
+      cube.map(position => (position *= spacing))
+    ) as [number, number, number][]
+  }, [size])
+
+  const getCubeInFaces = (cube: [number, number, number][]) => {
+    const faceArray = []
+    for (let i = 0; i < size * size; i++) {
+      faceArray.push(cube.slice(i * size * size, (i + 1) * size * size))
+    }
+    return faceArray
+  }
+
+  const rotateFaceByIndex = (index: number, axis: Vector3) => {
+    if (faceRefs.current && faceRefs.current[index]) {
+      faceRefs.current[index]
+        .rotateOnWorldAxis(axis, Math.PI / 2)
+        .translateZ(-0.1)
+    }
+  }
+
+  return (
+    <group ref={cubeRef}>
+      {getCubeInFaces(cubletMatrixWithSpacing).map((face, index) => {
+        return (
+          <motion.group
+            onClick={e => {
+              e.stopPropagation()
+              rotateFaceByIndex(index, new Vector3(1, 0, 0))
+            }}
+            ref={ref => {
+              if (faceRefs.current && ref) faceRefs.current[index] = ref as any
+            }}
+            key={index}
+            // rotation={[index === 0 ? Math.PI : 0, 0, 0]}
+          >
+            {face.map((position, index) => (
+              <Cublet
+                key={index}
+                position={position}
+                index={index}
+                // cubletRef={ref => (cubeRefs.current[index] = ref)}
+              />
+            ))}
+          </motion.group>
+        )
+      })}
+    </group>
+  )
 }
 
-type CubletPosition = [number, number, number]
-type FaceCubletFunction = (i: number, j: number, size: number) => number
+function Scene () {
+  const { camera, scene } = useThree()
+  useFrame(({ clock }) => {
+    camera.lookAt(scene.position)
+  })
+  const axesHelper = new AxesHelper(5) // The number specifies the size of the helper
 
-const generateCubletPositions = (
-	size: number,
-	spacing: number
-): CubletPosition[] => {
-	const positions: CubletPosition[] = []
-	for (let i = 0; i < size; i++)
-		for (let j = 0; j < size; j++)
-			for (let k = 0; k < size; k++)
-				positions.push([i * spacing, j * spacing, k * spacing])
-	return positions
+  scene.add(axesHelper)
+
+  return (
+    <>
+      <ambientLight />
+      <pointLight position={[10, 10, 10]} />
+      <Stars />
+      <Cube size={3} />
+      <Stats />
+      {/* <gridHelper args={[10, 10, `white`, `gray`]} /> */}
+
+      <OrbitControls />
+    </>
+  )
 }
 
-const generateFaceCublets = (
-	size: number,
-	faceCubletFunction: (i: number, j: number, k: number) => number
-): number[] => {
-	const cublets: number[] = []
-	for (let i = 0; i < size; i++) {
-		for (let j = 0; j < size; j++) {
-			for (let k = 0; k < size; k++) {
-				const cubletIndex = faceCubletFunction(i, j, k)
-				if (cubletIndex !== undefined) {
-					cublets.push(cubletIndex)
-				}
-			}
-		}
-	}
-	return cublets
-}
-
-const Cube: FC<CubeProps> = ({ size }) => {
-	const spacing = 1.1
-	const { scene } = useThree()
-
-	const cubletPositions = useMemo(
-		() => generateCubletPositions(size, spacing),
-		[size]
-	)
-
-	const faceCubletsFront = useMemo(
-		() => generateFaceCublets(size, (i, j, size) => i * size * size + j * size),
-		[size]
-	)
-	const faceCubletsBack = useMemo(
-		() =>
-			generateFaceCublets(
-				size,
-				(i, j, size) => i * size * size + j * size + size - 1
-			),
-		[size]
-	)
-	const faceCubletsTop = useMemo(
-		() =>
-			generateFaceCublets(
-				size,
-				(i, j, size) => i * size * size + size * (size - 1) + j
-			),
-		[size]
-	)
-	const faceCubletsBottom = useMemo(
-		() => generateFaceCublets(size, (i, j, size) => i * size * size + j),
-		[size]
-	)
-	// const faceCubletsLeft = useMemo(() => {
-	// 	return generateFaceCublets(size, (i, j, k) =>
-	// 		k === 0 ? i * size * size + j * size : -1
-	// 	)
-	// }, [size])
-
-	// const faceCubletsRight = useMemo(() => {
-	// 	return generateFaceCublets(size, (i, j, k) =>
-	// 		k === size - 1 ? i * size * size + j * size : -1
-	// 	)
-	// }, [size])
-
-	const faces = [
-		{ cublets: faceCubletsFront, color: CubeColors.DARK_ORANGE },
-		{ cublets: faceCubletsBack, color: CubeColors.BLUE },
-		{ cublets: faceCubletsTop, color: CubeColors.WHITE },
-		{ cublets: faceCubletsBottom, color: CubeColors.RED }
-		// { cublets: faceCubletsLeft, color: CubeColors.YELLOW },
-		// { cublets: faceCubletsRight, color: CubeColors.GREEN }
-	]
-	console.log(faceCubletsFront, 'front')
-	console.log(faceCubletsBack, 'back')
-	console.log(faceCubletsTop, 'top')
-	console.log(faceCubletsBottom, 'bottom')
-	// console.log(faceCubletsLeft, 'left')
-	// console.log(faceCubletsRight, 'Right')
-	return (
-		<>
-			{faces.map(({ cublets, color }, faceIndex) =>
-				cublets.map(cubletIndex => (
-					<SimpleCublet
-						key={`${faceIndex}-${cubletIndex}`}
-						position={cubletPositions[cubletIndex]}
-						color={color}
-					/>
-				))
-			)}
-		</>
-	)
-}
-
-const CubeOld: React.FC<CubeProps> = ({ size }) => {
-	const spacing = 1.1
-	const cubletCount = size * size * size
-	const { scene } = useThree()
-
-	const cubletPositions = useMemo(() => {
-		const positions: [number, number, number][] = []
-		for (let i = 0; i < size; i++) {
-			for (let j = 0; j < size; j++) {
-				for (let k = 0; k < size; k++) {
-					positions.push([i * spacing, j * spacing, k * spacing])
-				}
-			}
-		}
-		return positions
-	}, [size, spacing, cubletCount])
-
-	return (
-		<>
-			{cubletPositions.map((position, index) => (
-				<Cublet key={index} position={position} />
-			))}
-		</>
-	)
-}
-
-function Scene() {
-	const { camera } = useThree()
-	useFrame(() => {
-		camera.lookAt(0, 0, 0)
-	})
-
-	return (
-		<>
-			<ambientLight />
-			<pointLight position={[10, 10, 10]} />
-			<Stars />
-			<Cube size={4} />
-			<CubePreforment />
-			<Stats />
-			<OrbitControls />
-		</>
-	)
-}
-
-function App() {
-	return (
-		<div className="w-screen h-screen overflow-hidden">
-			<Canvas frameloop="demand" camera={{ position: [10, 0, 0], fov: 100 }}>
-				<Scene />
-			</Canvas>
-		</div>
-	)
+function App () {
+  return (
+    <div className='w-screen h-screen overflow-hidden'>
+      <Canvas camera={{ position: [10, 0, 0], fov: 100 }}>
+        <Scene />
+      </Canvas>
+    </div>
+  )
 }
 
 export default App
