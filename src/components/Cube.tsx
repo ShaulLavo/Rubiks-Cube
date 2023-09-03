@@ -59,7 +59,8 @@ export const Cube: React.FC<CubeProps> = ({ size }) => {
     rotationAxis === RotationAxis.X
       ? getFacesX(cubletMatrixWithSpacing)
       : getFacesY(cubletMatrixWithSpacing)
-
+  console.log('getFacesY(cubletMatrix)', getFacesY(cubletMatrix))
+  console.log('getFacesX(cubletMatrix)', getFacesX(cubletMatrix))
   return (
     <group ref={cubeRef}>
       {faces.map((face, index) => (

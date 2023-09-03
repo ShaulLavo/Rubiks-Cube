@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ThreeEvent } from '@react-three/fiber'
 import { motion } from 'framer-motion-3d'
 import { Cublet } from './Cublet'
 import { NormalMatrix, GroupRefs, RotationAxis } from '../types'
 import { useStore } from './store'
+import { Group } from 'three'
 
 interface FaceProps {
   face: NormalMatrix
@@ -25,9 +26,6 @@ export const Face = ({
     number
   ])
   const rotationAxis = useStore(state => state.rotationAxis)
-  const rotations = useStore(state => state.rotations)
-
-  const addRotation = useStore(state => state.addRotation)
   const getAnime = () => {
     switch (rotationAxis) {
       case RotationAxis.X:
@@ -36,25 +34,20 @@ export const Face = ({
         return { rotateY: rotationTargets[rotationAxis] }
     }
   }
+  console.log('rotationTargets', rotationTargets)
 
+  const resetRotations = () => {
+    setRotationTargets([0, 0, 0])
+  }
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     switch (rotationAxis) {
       case RotationAxis.X:
         rotationTargets[rotationAxis] += Math.PI / 2
-        addRotation({
-          rotation: rotationTargets,
-          faceRef: faceRefs.current[index],
-          axis: rotationAxis
-        })
+
         break
       case RotationAxis.Y:
         rotationTargets[rotationAxis] -= Math.PI / 2
-        addRotation({
-          rotation: rotationTargets,
-          faceRef: faceRefs.current[index],
-          axis: rotationAxis
-        })
 
         break
     }
@@ -73,7 +66,8 @@ export const Face = ({
       }}
       onClick={handleClick}
       ref={ref => {
-        if (faceRefs.current && ref) faceRefs.current[index] = ref as any
+        if (faceRefs.current && ref)
+          faceRefs.current[index] = ref as unknown as Group
       }}
       key={index}
     >
