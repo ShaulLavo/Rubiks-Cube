@@ -21,8 +21,8 @@ interface CubletProps {
   position: [number, number, number]
   index: number
   cubletRef?: CubletRef
-  size: number
-  normalPosition: NormalMatrix
+  size?: number
+  normalPosition?: NormalMatrix
 }
 
 export type CubletRef = Ref<
@@ -41,24 +41,27 @@ export const Cublet: React.FC<CubletProps> = ({
   const cubletRef = useRef<CubletEl>(null)
   useLayoutEffect(() => {
     if (cubletRef.current) {
+      // cubletRef.current.position.set(position[0], position[1], position[2])
       cubletRef.current.translateOnAxis(new Vector3(-0.525, -0.525, -0.525), 1)
     }
   }, [cubletRef.current])
-  // if (index < 9) cubletRef?.current?.rotateY(Math.PI / 4)
+  cubletIndex
+  // console.log('position', cubletRef.current?.position)
+  // console.log('quaternion', cubletRef.current?.quaternion)
   const cubletColor = (cubletIndex: number, faceIndex: number) => {
     console.log(cubletIndex + faceIndex)
     console.log(normalPosition)
     const specificPosition =
-      normalPosition[
-        faceIndex + cubletIndex >= size ? 0 : faceIndex + cubletIndex
+      normalPosition?.[
+        faceIndex + cubletIndex >= (size ?? 0) ? 0 : faceIndex + cubletIndex
       ]
     const isOuterLayer =
-      specificPosition[0] === 0 ||
-      specificPosition[0] === size - 1 ||
-      specificPosition[1] === 0 ||
-      specificPosition[1] === size - 1 ||
-      specificPosition[2] === 0 ||
-      specificPosition[2] === size - 1
+      specificPosition?.[0] === 0 ||
+      specificPosition?.[0] === (size ?? 0) - 1 ||
+      specificPosition?.[1] === 0 ||
+      specificPosition?.[1] === (size ?? 0) - 1 ||
+      specificPosition?.[2] === 0 ||
+      specificPosition?.[2] === (size ?? 0) - 1
 
     console.log(isOuterLayer)
     // Other conditions...
@@ -68,7 +71,6 @@ export const Cublet: React.FC<CubletProps> = ({
       return 'red'
     }
   }
-
   return (
     <Box args={[1, 1, 1]} ref={cubletRef} position={position}>
       {Object.values(DarkModeCubeColors)

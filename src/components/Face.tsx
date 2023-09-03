@@ -32,6 +32,8 @@ export const Face = ({
         return { rotateX: rotationTargets[rotationAxis] }
       case RotationAxis.Y:
         return { rotateY: rotationTargets[rotationAxis] }
+      case RotationAxis.Z:
+        return { rotateZ: rotationTargets[rotationAxis] }
     }
   }
   console.log('rotationTargets', rotationTargets)
@@ -39,12 +41,17 @@ export const Face = ({
   const resetRotations = () => {
     setRotationTargets([0, 0, 0])
   }
+  //   useEffect(() => {
+  //     resetRotations()
+  //   }, [rotationAxis])
+
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
+    console.log(rotationAxis)
+    console.log(rotationTargets)
     switch (rotationAxis) {
       case RotationAxis.X:
         rotationTargets[rotationAxis] += Math.PI / 2
-
         break
       case RotationAxis.Y:
         rotationTargets[rotationAxis] -= Math.PI / 2
@@ -53,7 +60,9 @@ export const Face = ({
     }
     setRotationTargets([...rotationTargets])
   }
-
+  console.log('rotation', faceRefs?.current?.[index]?.rotation)
+  console.log('position', faceRefs?.current?.[index]?.position)
+  console.log('normalPosition', cubletMatrix)
   return (
     <motion.group
       animate={getAnime()}

@@ -22,7 +22,14 @@ export const Cube: React.FC<CubeProps> = ({ size }) => {
     }
     return positions
   }, [size])
+  const createCube = (size: number) =>
+    Array.from({ length: size }, (_, x) =>
+      Array.from({ length: size }, (_, y) =>
+        Array.from({ length: size }, (_, z) => ({ x, y, z }))
+      )
+    )
 
+  console.log('cube3x3x3', createCube(3).flat(4).length)
   const cubletMatrixWithSpacing = useMemo(() => {
     const spacing = 1.05
     return cubletMatrix.map(cube =>

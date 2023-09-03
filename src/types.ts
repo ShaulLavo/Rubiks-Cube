@@ -2,7 +2,8 @@ import { BufferGeometry, Group, Material, Mesh, NormalBufferAttributes } from "t
 
 export enum RotationAxis {
     X = 0,
-    Y = 1
+    Y = 1,
+    Z = 2
 }
 type CubletEl = Mesh<
     BufferGeometry<NormalBufferAttributes>,
