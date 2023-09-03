@@ -5,12 +5,12 @@ import { Cublet } from './Cublet'
 import { GroupRefs, NormalMatrix, RotationAxis } from '../types'
 import { Face } from './Face'
 import { useStore } from './store'
-// import { Cube } from './Cube'
+import { Cube } from './Cube'
 interface CubeProps {
   size: number
 }
 type CubeMatrix = [number, number, number][][][]
-const Cube: React.FC<CubeProps> = ({ size }) => {
+const Cube1: React.FC<CubeProps> = ({ size }) => {
   const faceRefs = useRef<GroupRefs>([])
   const rotationAxis = useStore(state => state.rotationAxis)
 
@@ -62,16 +62,13 @@ const Cube: React.FC<CubeProps> = ({ size }) => {
 
   return (
     <>
-      {faces.map((face, index) => (
-        <Face
-          key={index}
-          face={face}
-          index={index}
-          size={size}
-          faceRefs={faceRefs}
-          cubletMatrix={cube.flat(2)}
-        />
-      ))}
+      {cube.map((plane, x) =>
+        plane.map((row, y) =>
+          row.map((cubletPosition, z) => (
+            <Cublet key={`${x}-${y}-${z}`} position={cubletPosition} />
+          ))
+        )
+      )}
     </>
   )
 }
